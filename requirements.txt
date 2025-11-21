@@ -1,2 +1,14 @@
 langgraph
 langchain
+fastapi 
+uvicorn 
+sqlalchemy 
+psycopg2-binary 
+pymongo 
+redis 
+boto3
+python-dotenv 
+pydantic
+pymongo
+langchain_openai
+tavily

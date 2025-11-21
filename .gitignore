@@ -1,3 +1,6 @@
 .venv/
 .gitattributes
 *.toml
+*.txt
+.env
+__pycache__/

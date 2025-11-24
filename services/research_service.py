@@ -27,27 +27,28 @@ def llm_summarize(text: str) -> Dict[str, Any]:
     )
 
     prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            "You are an expert AI research assistant. Summarize content and extract tags."
-        ),
-        (
-            "user",
-            """
-Summarize the following research text into a clear, structured summary.
-Extract 5–10 short tags (keywords).
-
-Return ONLY valid JSON:
-{
-  "summary": "...",
-  "tags": ["...", "..."]
-}
-
-TEXT:
-{text}
-"""
+    (
+        "system",
+        "You are an expert AI research assistant. Summarize content and extract tags."
+    ),
+    (
+        "user",
+        """
+    Summarize the following research text into a clear, structured summary.
+    Extract 5–10 short tags (keywords).
+    
+    Return ONLY valid JSON:
+    {{
+      "summary": "...",
+      "tags": ["...", "..."]
+    }}
+    
+    TEXT:
+    {text}
+    """
         ),
     ])
+
 
     chain = prompt | llm
     response = chain.invoke({"text": text})

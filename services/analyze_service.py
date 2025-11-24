@@ -77,13 +77,20 @@ def make_retrieval_node(db: Session, mongo_db):
 # --------------------------------------------------
 # NODE 5: SynthesisNode — generate insights via LLM
 # --------------------------------------------------
-def synthesis_node(state: AnalyzeState) -> AnalyzeState:
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+def synthesis_node(state):
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0.0
     )
 
-    # Compress related docs
+    # Build context from related docs
     if state.related:
         related_block = "\n\n".join(
             f"Topic: {r['topic']}\nSummary: {r['summary']}\nSimilarity: {r['similarity']}"
@@ -92,33 +99,35 @@ def synthesis_node(state: AnalyzeState) -> AnalyzeState:
     else:
         related_block = "No related documents found."
 
-    prompt = f"""
-You are an expert AI analyst. Compare USER_TEXT with RELATED_KNOWLEDGE.
-
-Return ONLY valid JSON with fields:
-- insights
-- contradictions
-- missing_points
-- related_summary
-
-USER_TEXT:
-{state.normalized}
-
-RELATED_KNOWLEDGE:
-{related_block}
-"""
-
-    raw = llm(prompt)
-    content = raw.content.strip()
+    # Prepare the prompt
+    prompt_text = f"""
+    You are an expert AI analyst. Compare USER_TEXT with RELATED_KNOWLEDGE.
+    
+    Return ONLY valid JSON with fields:
+    - insights
+    - contradictions
+    - missing_points
+    - related_summary
+    
+    USER_TEXT:
+    {state.normalized}
+    
+    RELATED_KNOWLEDGE:
+    {related_block}
+    """
 
     try:
-        parsed = json.loads(content)
-    except Exception:
+        # Call the LLM correctly
+        response = llm([HumanMessage(content=prompt_text)])
+        raw = response.content
+        parsed = json.loads(raw)
+    except Exception as e:
+        logger.warning("LLM returned non-JSON or failed: %s", e)
         parsed = {
-            "insights": content,
+            "insights": raw if 'raw' in locals() else "",
             "contradictions": [],
             "missing_points": [],
-            "related_summary": related_block,
+            "related_summary": related_block
         }
 
     state.insights = parsed
@@ -178,7 +187,7 @@ def run_analyze_pipeline(
 
     # Format API response
     result = {
-        "insights": final_state.insights.get("insights", ""),
+        "insights": final_state.insights["insights"],
         "related": [
             {
                 "topic": r["topic"],

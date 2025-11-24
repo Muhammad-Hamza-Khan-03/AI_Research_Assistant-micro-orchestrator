@@ -10,7 +10,8 @@ import os
 import logging
 from typing import List, Dict, Any
 from tavily import TavilyClient  # make sure you have tavily installed
-
+from dotenv import load_dotenv
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
@@ -31,7 +32,7 @@ def tavily_search(query: str, num: int = 5) -> List[Dict[str, Any]]:
     for r in results:
         transformed.append({
             "title": r.get("title", ""),
-            "link": r.get("url", ""),
+            "link": "project_structure.txt",
             "snippet": r.get("snippet", ""),
         })
     return transformed

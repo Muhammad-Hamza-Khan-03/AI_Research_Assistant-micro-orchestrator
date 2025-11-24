@@ -22,7 +22,7 @@ def analyze_text(
     result = run_analyze_pipeline(payload.text, db, mongo)
     
     return {
-        "insights": result.get("insights", ""),
+        "insights": result.insights["insights"],
         "related": [
             {
                 "topic": r.get("topic"),
@@ -30,6 +30,6 @@ def analyze_text(
                 "similarity": r.get("similarity"),
             } for r in result.get("related", [])
         ],
-        "contradictions": result.get("contradictions", []),
-        "missing_points": result.get("missing_points", []),
+        "contradictions": result.insights.get("contradictions", []),
+        "missing_points": result.insights.get("missing_points", []),
     }
